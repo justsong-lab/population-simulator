@@ -1,11 +1,12 @@
 let count = 0;
+let world = undefined;
 main();
 
 function main() {
     let screen = document.getElementById('canvas').getContext('2d');
     screen.canvas.width = window.innerWidth;
     screen.canvas.height = window.innerHeight;
-    let world = {
+    world = {
         grass: [],
         cows: [],
         wolves: [],
@@ -20,6 +21,7 @@ function main() {
     for (let i = 0; i < 6 + Math.round(10 * Math.random()); i++) {
         world.wolves.push(makeWolf({x: screen.canvas.width * Math.random(), y: screen.canvas.height * Math.random()}));
     }
+
     function tick() {
         update(world);
         draw(world, screen);
@@ -32,13 +34,11 @@ function main() {
 function update(world) {
     count++;
     count %= 60;
-    if(count===15){
+    if (count === 15) {
         world.grass.push(makeGrass({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
-    }
-    else if(count===35){
+    } else if (count === 35) {
         world.cows.push(makeCow({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
-    }
-    else if(count===55){
+    } else if (count === 55) {
         world.wolves.push(makeWolf({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
     }
 
@@ -254,3 +254,25 @@ function nearbyPosition(world, object) {
 function capture(a, b, distance) {
     return Math.abs(a.center.x - b.center.x) < distance && Math.abs(a.center.y - b.center.y) < distance;
 }
+
+document.onkeydown = function (e) {
+    switch (e.code) {
+        case "KeyR":
+            location.reload();
+            break;
+        case "KeyG":
+            world.grass.push(makeGrass({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+            break;
+        case "KeyC":
+            world.cows.push(makeCow({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+            break;
+        case "KeyW":
+            world.wolves.push(makeWolf({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+            break;
+        case "F11":
+            location.reload();
+            break;
+        default:
+            break;
+    }
+};
