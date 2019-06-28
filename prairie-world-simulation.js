@@ -17,10 +17,10 @@ function main() {
     for (let i = 0; i < 6 + Math.round(10 * Math.random()); i++) {
         world.cows.push(makeCow({x: screen.canvas.width * Math.random(), y: screen.canvas.height * Math.random()}));
     }
-
+    for (let i = 0; i < 6 + Math.round(10 * Math.random()); i++) {
+        world.wolves.push(makeWolf({x: screen.canvas.width * Math.random(), y: screen.canvas.height * Math.random()}));
+    }
     function tick() {
-        count++;
-        count %= 60;
         update(world);
         draw(world, screen);
         requestAnimationFrame(tick);
@@ -30,6 +30,18 @@ function main() {
 }
 
 function update(world) {
+    count++;
+    count %= 60;
+    if(count===15){
+        world.grass.push(makeGrass({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+    }
+    else if(count===35){
+        world.cows.push(makeCow({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+    }
+    else if(count===55){
+        world.wolves.push(makeWolf({x: world.dimensions.x * Math.random(), y: world.dimensions.y * Math.random()}));
+    }
+
     updateGrass(world);
     updateCows(world);
     updateWolves(world);
@@ -99,7 +111,7 @@ function updateCows(world) {
         if (count % 10 === 0) {
             for (let i = 0; i < world.grass.length; i++) {
                 let grass = world.grass[i];
-                if (capture(cow, grass)) {
+                if (capture(cow, grass, 7)) {
                     cow.energy += grass.energy;
                     world.grass.splice(i, 1);
                     break;
@@ -112,8 +124,55 @@ function updateCows(world) {
 function updateWolves(world) {
     for (let i = 0; i < world.wolves.length; i++) {
         let wolf = world.wolves[i];
+        if (wolf.energy <= 0 || wolf.age >= 15 + 10 * random()) {
+            world.wolves.splice(i, 1);
+        }
+    }
+    for (let i = 0; i < world.wolves.length; i++) {
+        let wolf = world.wolves[i];
+        wolf.age += 0.02;
+        wolf.energy -= 0.006;
+        wolf.lastMultiplication++;
+        if (wolf.multiplication <= 3 && wolf.energy > 10 && wolf.lastMultiplication > 100) {
+            world.wolves.push(makeWolf(nearbyPosition(world, wolf)));
+            world.wolves.push(makeWolf(nearbyPosition(world, wolf)));
+            wolf.multiplication++;
+            wolf.energy -= 5;
+            wolf.lastMultiplication = 0;
+        }
+        wolf.radius = Math.min(10, Math.max(3, wolf.energy));
+        wolf.velocity.x += random() - 0.5;
+        wolf.velocity.y += random() - 0.5;
+        if (random() > 0.9) {
+            wolf.velocity.x = 2 * (random() - 0.5);
+            wolf.velocity.y = 2 * (random() - 0.5);
+        }
         wolf.center.x += wolf.velocity.x;
+        if (wolf.center.x < 0) {
+            wolf.center.x = 0;
+            wolf.velocity.x = 0;
+        } else if (wolf.center.x > world.dimensions.x) {
+            wolf.center.x = world.dimensions.x;
+            wolf.velocity.x = 0;
+        }
         wolf.center.y += wolf.velocity.y;
+        if (wolf.center.y < 0) {
+            wolf.center.y = 0;
+            wolf.velocity.y = 0;
+        } else if (wolf.center.y > world.dimensions.y) {
+            wolf.center.y = world.dimensions.y;
+            wolf.velocity.y = 0;
+        }
+        if (count % 10 === 0) {
+            for (let i = 0; i < world.cows.length; i++) {
+                let cow = world.cows[i];
+                if (capture(wolf, cow, 14)) {
+                    wolf.energy += cow.energy;
+                    world.cows.splice(i, 1);
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -164,14 +223,18 @@ function makeCow(center) {
 
 function makeWolf(center) {
     return {
+        age: 0,
+        energy: 2.5,
+        multiplication: 0,
+        lastMultiplication: 0,
+        velocity: {x: 2, y: 2},
         center: center,
-        velocity: {x: 1, y: 1},
         radius: 5,
         draw: function (screen) {
             screen.beginPath();
             screen.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2, true);
             screen.closePath();
-            screen.fillStyle = "#808080";
+            screen.fillStyle = "#ff0002";
             screen.fill();
         }
     };
@@ -188,6 +251,6 @@ function nearbyPosition(world, object) {
     }
 }
 
-function capture(a, b) {
-    return Math.abs(a.center.x - b.center.x) < 7 && Math.abs(a.center.y - b.center.y) < 7;
+function capture(a, b, distance) {
+    return Math.abs(a.center.x - b.center.x) < distance && Math.abs(a.center.y - b.center.y) < distance;
 }
