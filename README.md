@@ -1,6 +1,6 @@
 ## Introduction
 + This project simulates the activities of grass, cow and wolf on the grassland.
-+ **[Try it here](https://songwonderful.github.io/prairie-world/)**
++ **[Try it here](https://songwonderful.github.io/population-simulator/)**
 + Demo
 ![Demo](./demo.gif)
 
